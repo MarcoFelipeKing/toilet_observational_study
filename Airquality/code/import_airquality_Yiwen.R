@@ -50,7 +50,7 @@ df
 # Quick  plot -----
 
 df %>%
-  filter(timestamp>"2022-07-28 10:00:00" & timestamp <"2022-07-28 16:00:00") %>%
+  filter(timestamp>"2022-07-25 16:00:00" & timestamp <"2022-08-03 19:00:00") %>%
   ggplot()+
   geom_point(aes(x=timestamp,y=co2_ppm,colour=sensor))+
   scale_color_brewer(palette = "Set1")+
@@ -67,20 +67,24 @@ plotly::ggplotly(p)
 #TODO - Create a data.frame with the start end end time of each participant
 # Use the participant start/stop time to cut out the data we doing need using left_join.
 
-Experiment_List <- data.frame(
-  participantID=c("WT_001_U","WT_001_D","WT_002_U"),
-  StartTime =c("2022-07-28 12:27:00","2022-07-28 12:40:00","2022-07-28 13:00:00"),
-  StopTime=c("2022-07-28 12:38:00","2022-07-28 12:55:00","2022-07-28 13:15:00"),
-  sex=c("F","F","F"),
-  activity=c("U","D","U")
-)
+# Experiment_List <- data.frame(
+#   participantID=c("WT_001_U","WT_001_D","WT_002_U"),
+#   StartTime =c("2022-07-28 12:27:00","2022-07-28 12:40:00","2022-07-28 13:00:00"),
+#   StopTime=c("2022-07-28 12:38:00","2022-07-28 12:55:00","2022-07-28 13:15:00"),
+#   sex=c("F","F","F"),
+#   activity=c("U","D","U")
+# )
 
+Experiment_List <- readxl::read_xlsx("participant_meta_data/participant_meta_data.xlsx","Sheet1")
+
+Experiment_List
 # participant_meta_data <- readxl::read_xlsx(path = "participant_meta_data/participant_meta_data.xlsx",sheet = "Sheet1")
 
 
 #All the datetime values should be of type POSIXct.
 Experiment_List <- Experiment_List %>%
-  mutate(across(c(StartTime, StopTime), lubridate::ymd_hms)) 
+  mutate(across(c(start_time, stop_time), lubridate::ymd_hms)) %>% 
+  mutate(duration_of_expt=stop_time-start_time )
 
 #Chunk the df into 10 bits in case we need to use mclapply
 df<-split(df, (as.numeric(rownames(df))-1) %/% 10000)
@@ -88,12 +92,12 @@ df<-split(df, (as.numeric(rownames(df))-1) %/% 10000)
 #Do a left join to remove any rows not belonging to an experiment
 fuzzyJoinFunction<-function(a){
   a<-fuzzy_left_join(a, Experiment_List, 
-                     by = c('timestamp' = 'StartTime', 'timestamp'= 'StopTime'), 
+                     by = c('timestamp' = 'start_time', 'timestamp'= 'stop_time'), 
                      match_fun = c(`>=`, `<=`))
   a
 }
 
-df<-rbindlist(lapply(X=df,FUN=fuzzyJoinFunction))
+df<-bind_rows(lapply(X=df,FUN=fuzzyJoinFunction))
 
 #Drop rows with no experiment - only if we don't want the time between participants.
 # df<-df %>% 
@@ -109,28 +113,61 @@ df %>%
   group_by(activity) %>% 
   summarise(M=mean(co2_ppm))
 
+
 # Reset the time for each participant----
 # cretea a column that just shows the number of seconds sincethe start of the experiment.
 df <- df %>% 
-  group_by(participantID, sensor) %>% 
+  group_by(experimentID, sensor) %>% 
   mutate(measurement_time=time-min(time))
   
 
 
-# Plot by individual -----
+# Plot by individual CO2 -----
 df %>%
+  drop_na(participantID) %>% 
+  filter(activity=="D") %>% 
   # filter(timestamp>"2022-07-28 10:00:00" & timestamp <"2022-07-28 16:00:00") %>%
   ggplot()+
   geom_point(aes(x=measurement_time,y=co2_ppm,colour=sensor))+
   scale_color_brewer(palette = "Set1")+
-  facet_wrap(activity~participantID)+
-  xlab("Time and date")+
+  facet_wrap(~experimentID+activity,scales = "free")+
+  xlab("Time since start (s)")+
   ylab("CO2 ppm")+
   labs(colour="Sensor")+
   hrbrthemes::theme_ipsum()+
-  labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")
+  labs(title="CO2 ppm toilets", subtitle="CO2 ppm values during defecation experiments", caption="male and female toilets (no GN)")
+  # labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")
 
 
+# Plot by individual PM 10 -----
+df %>%
+  drop_na(participantID) %>% 
+  # filter(activity=="D") %>% 
+  # filter(timestamp>"2022-07-28 10:00:00" & timestamp <"2022-07-28 16:00:00") %>%
+  ggplot()+
+  geom_boxplot(aes(x=as.factor(experimentID),y=pm10_ug_m3,fill=toilet_type))+
+  scale_color_brewer(palette = "Set1")+
+  facet_wrap(~activity,scales = "free")+
+  xlab("Time since start (s)")+
+  ylab("pm 2.5")+
+  labs(colour="Sensor")+
+  hrbrthemes::theme_ipsum()+
+  labs(title="PM 10 in toilets", subtitle="pm 10 values during urination, defection and menstrual hygiene experiments", caption="male and female toilets (no GN)")
+# labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")
+
+df %>%
+  drop_na(participantID) %>% 
+  # filter(activity=="D") %>% 
+  # filter(timestamp>"2022-07-28 10:00:00" & timestamp <"2022-07-28 16:00:00") %>%
+  ggplot()+
+  geom_violin(aes(x=toilet_type,y=pm10_ug_m3,fill=toilet_type))+
+  scale_color_brewer(palette = "Set1")+
+  facet_wrap(~activity,scales = "free")+
+  xlab("Time since start (s)")+
+  ylab("pm 2.5")+
+  labs(colour="Sensor")+
+  hrbrthemes::theme_ipsum()+
+  labs(title="PM 10 in toilets", subtitle="pm 10 values during urination, defection and menstrual hygiene experiments", caption="male and female toilets (no GN)")
 
 # Calculate the decay ventilation curve after the participant has left.
 
