@@ -52,11 +52,8 @@ df <- df%>%
   group_by(id) %>% 
   mutate(experimentID = paste0(stri_rand_strings(1, 5, "[A-Z]"), stri_rand_strings(1, 4, "[0-9]"), stri_rand_strings(1, 1, "[A-Z]")))
 
-# 2. Summary statistics
-  
-  df %>% 
-    filter(str_detect(surface, 'Phone'))
 
+# Plot by activity
   
   df %>% 
     ungroup() %>% 
@@ -64,6 +61,7 @@ df <- df%>%
     tally() %>% 
     ggplot()+
     geom_col(aes(x=surface,y=n,fill=activity))+
+    # geom_bar(stat = "identity")
     scale_y_discrete(guide = guide_axis(angle = 90))+
     coord_flip()+
     hrbrthemes::theme_ipsum()
@@ -71,7 +69,7 @@ df <- df%>%
   
       
       
-      
+  # 2. Summary statistics
       
       
       
