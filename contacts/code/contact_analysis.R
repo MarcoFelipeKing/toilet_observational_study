@@ -18,15 +18,16 @@ df <- df %>%
                         hand=="right hand"~"right",
                         TRUE~hand)) %>% 
   separate(activity,into = c("activity","activity_sub_type"),sep = "\\(") %>% 
-  separate(activity_sub_type,into = c("activity_sub_type",NA),sep = "\\)")
+  separate(activity_sub_type,into = c("activity_sub_type",NA),sep = "\\)") %>% 
+  mutate(activity=trimws(activity))
 
 
 # clean the date_time column - if we need it
-df %>% 
-  separate(date_time,into=c(NA,"date_time"),sep = "Touched") %>% 
-  separate(date_time,into=c("date_time"),sep = "GMT") %>% 
-  mutate(date_time=trimws(date_time)) %>% 
-  separate(date_time,into=c("DAY","MONTH","MONTH_1","YEAR","TIME"),sep = " ")
+# df %>% 
+#   separate(date_time,into=c(NA,"date_time"),sep = "Touched") %>% 
+#   separate(date_time,into=c("date_time"),sep = "GMT") %>% 
+#   mutate(date_time=trimws(date_time)) %>% 
+#   separate(date_time,into=c("DAY","MONTH","MONTH_1","YEAR","TIME"),sep = " ")
   
   
   
@@ -34,15 +35,20 @@ df %>%
 df <- df %>% 
   mutate(surface=trimws(surface)) %>% 
   mutate(surface=case_when(surface=="Toile paper"~"Toilet paper",
-                           surface=="Tissue paper"~"Toilet paper",
+                           # surface=="Tissue paper"~"Toilet paper",
                            surface=="Toillet surface"~"Toilet surface",
-                           surface=="Bins"~" Bin in the cubicle",
-                           surface=="Bins in the cubicel"~" Bin in the cubicle",
-                           surface=="Bins in cubicel"~"Bin in the cubicle",
-                           surface=="Bins in toilet"~"Bin outside the cubicle",
-                           surface=="Sunscreens"~"Clothing",
+                           surface=="Bins"~"Bin outside the cubicle",
+                           surface=="Bins in the cubicel"~"Bin inside the cubicle",
+                           surface=="Bins in cubicel"~"Bin inside the cubicle",
+                           surface=="Bins in toilet"~"Bin inside the cubicle",
+                           surface=="Bin inside the cubicle"~"Bin inside the cubicle",
+                           surface=="Sunscreens"~"Face",
                            surface=="Toile brush handle"~"Toilet brush handle",
                            surface=="Glasses"~"Clothing",
+                           surface=="Door handle"~"Inside door handle",
+                           surface=="Cubicel door handle inside"~"Cubicle door handle inside",
+                           surface=="Cubicel door handle outside"~"Cubicle door handle outside",
+                           surface=="Watch"~"Clothing",
                            TRUE~surface)) 
 
 # experimentID is wrong, it repeats 1,2,3 for every participant, fixed by creating a random string for each one instead.
@@ -67,9 +73,47 @@ df <- df%>%
     hrbrthemes::theme_ipsum()
   
   
-      
+ #      
       
   # 2. Summary statistics
+  
+  df %>% 
+    group_by(activity,experimentID) %>% 
+    tally() %>% 
+    # filter(activity=="Urination") %>% 
+    # arrange(desc(n))
+    group_by(activity) %>% 
+    ggplot()+
+    geom_violin(aes(x=activity,n,fill=activity),draw_quantiles = c(0.25,0.5,0.75))+
+    geom_jitter(aes(x=activity,n),width = 0.1,alpha=0.4)+
+    # geom_density(aes(x=n,fill=activity),alpha=0.2)+
+    # geom_bar(stat = "identity")
+    # scale_y_discrete(guide = guide_axis(angle = 90))+
+    # coord_flip()+
+    hrbrthemes::theme_ipsum()
+  
+  
+    summarise(Average=mean(n),
+              Median=median(n))
+  
+  
+  # Statistical test between groups
+    # Kruskal Wallis
+
+  data <- df %>% 
+      group_by(activity,experimentID) %>% 
+      tally()
+    
+  kruskal.test(data=data,n~activity)
+    
+  data %>% 
+    summarise(Average=mean(n),
+              ST=sd(n))
+  # Total time spent in the toilet for each experimentID
+  
+  
+  
+  
       
       
       
