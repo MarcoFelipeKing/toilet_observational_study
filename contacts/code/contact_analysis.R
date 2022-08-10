@@ -101,13 +101,13 @@ df <- df%>%
     # Kruskal Wallis
 
   data <- df %>% 
-      group_by(activity,experimentID) %>% 
+      group_by(experimentID) %>% 
       tally()
     
   kruskal.test(data=data,n~activity)
     
   data %>% 
-    summarise(Average=mean(n),
+    summarise(Median=median(n),
               ST=sd(n))
   # Total time spent in the toilet for each experimentID
   

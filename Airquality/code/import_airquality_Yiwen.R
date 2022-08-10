@@ -7,7 +7,7 @@ if("pacman" %in% rownames(installed.packages())==FALSE){install.packages("pacman
 pacman::p_load("vroom","dplyr","tidyr","janitor","lubridate","ggplot2","fuzzyjoin")
 
 #list all files within the folders and subfolders with the .txt extension
-l <- list.files(pattern="*.txt",full.names = TRUE,recursive = TRUE)
+l <- list.files(pattern="*.txt",path="airquality",full.names = TRUE,recursive = TRUE)
 
 #read in each file into a list object because each file seems to have different numbers of columns
 # If we didn't have this problem of differfent number of columns, it would be super easy.
@@ -47,21 +47,6 @@ df <- df %>%
 df
 
 
-# Quick  plot -----
-
-df %>%
-  filter(timestamp>"2022-07-25 16:00:00" & timestamp <"2022-08-03 19:00:00") %>%
-  ggplot()+
-  geom_point(aes(x=timestamp,y=co2_ppm,colour=sensor))+
-  scale_color_brewer(palette = "Set1")+
-  # facet_wrap(~sensor,nrow = 1)+
-  xlab("Time and date")+
-  ylab("CO2 ppm")+
-  labs(colour="Sensor")+
-  hrbrthemes::theme_ipsum()+
-  labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")->p
-
-plotly::ggplotly(p)
 
 # Participant data -----
 #TODO - Create a data.frame with the start end end time of each participant
@@ -99,10 +84,61 @@ fuzzyJoinFunction<-function(a){
 
 df<-bind_rows(lapply(X=df,FUN=fuzzyJoinFunction))
 
+# Split sex from participantID
+#TODO deal with extracting sex, location and participantID
+df %>% 
+  drop_na(participantID) %>%
+  mutate(id=paste(experimentID,participantID)) %>% 
+  group_by(id) %>% 
+  mutate(experimentID = paste0(stri_rand_strings(1, 5, "[A-Z]"), stri_rand_strings(1, 4, "[0-9]"), stri_rand_strings(1, 1, "[A-Z]"))) %>% 
+  separate(participantID,sep="_",into=c("location","participantID","sex")) %>% select(location,participantID,sex) %>% tail()
+# Quick  plot -----
+
+df %>%
+  drop_na(experimentID) %>%
+  filter(timestamp>"2022-07-25 16:00:00" & timestamp <"2022-08-03 19:00:00") %>%
+  ggplot(aes(x=timestamp,y=co2_ppm,colour=sensor, text =paste("ExptID:", experimentID, "activity:", activity)))+
+  geom_point()+
+  scale_color_brewer(palette = "Set1")+
+  # facet_wrap(~sensor,nrow = 1)+
+  xlab("Time and date")+
+  ylab("CO2 ppm")+
+  labs(colour="Sensor")+
+  hrbrthemes::theme_ipsum()+
+  labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")->p
+
+plotly::ggplotly(p)
+
+df %>%
+  drop_na(experimentID) %>%
+  filter(timestamp>"2022-07-25 16:00:00" & timestamp <"2022-08-03 19:00:00") %>%
+  ggplot(aes(x=timestamp,y=co2_ppm,colour=sensor, text =paste("ExptID:", experimentID, "activity:", activity)))+
+  geom_violin()+
+  scale_color_brewer(palette = "Set1")+
+  # facet_wrap(~sensor,nrow = 1)+
+  xlab("Time and date")+
+  ylab("CO2 ppm")+
+  labs(colour="Sensor")+
+  hrbrthemes::theme_ipsum()+
+  labs(title="CO2 in toilets", subtitle="CO2 ppm values during different experiments", caption="something")->p
+
+plotly::ggplotly(p)
+
+
 #Drop rows with no experiment - only if we don't want the time between participants.
 # df<-df %>% 
 #   drop_na(participantID)
 
+# Find mean CO2 per participantID
+df %>% 
+  group_by(participantID,activity,sensor) %>% 
+  summarise(Mean=mean(co2_ppm))
+
+
+# df %>%
+#   filter(participantID=="MT_001_M" & activity=="D") %>% 
+#   ggplot()+
+#   geom_density(aes(x=co2_ppm,fill=sensor),alpha=0.4)
 
 #TODO  - extract summary statistics for all types of experiment, and type of activity
 #TODO  - decide what to do with the offset of each sensor (i.e. that they don't all start at the same value for each experiment.)
