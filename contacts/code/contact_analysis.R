@@ -6,17 +6,20 @@ pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi)
 #WT
 l <- list.files(path="contacts/data/WT/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
-df <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","date_time","surface"))
+df <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","date_time","surface")) %>% 
+  mutate(toilet_type="Female")
 
-#WT
+#GN
 l <- list.files(path="contacts/data/GN/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
-dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))
+dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))%>% 
+  mutate(toilet_type="GN")
 
-#
-l <- list.files(path="contacts/data/GN/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
+#MT
+l <- list.files(path="contacts/data/MT/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
-dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))
+dfM <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))%>% 
+  mutate(toilet_type="Male")
 
 # Bind all data frames together
 df <- list(df,dfGN) %>% bind_rows()
@@ -50,9 +53,7 @@ df <- df %>%
 df <- df %>% 
   group_by(participantID) %>% 
   mutate(sex=case_when(activity=="MHM"~"Female",
-                       TRUE~"NA")) %>% 
-  select(participantID,sex) %>% 
-  distinct(participantID,sex) 
+                       TRUE~"NA")) 
 
 #Function to convert "NA" fr
 make.true.NA <- function(x) if(is.character(x)||is.factor(x)){
@@ -75,7 +76,12 @@ df <- df %>%
 #   distinct(participantID) %>% 
 #   merge(a,all=TRUE)
 
-    # crossing(df$participantID,df$activity)
+# # Add column for toilet_setting experiment
+# df <- df %>% 
+#   mutate(toilet_type=case_when(grepl("GN", participantID) ~ "GN",
+#                                grepl("WT", participantID) ~ "Female",
+#                                TRUE~sex))
+
 # clean surface names to match- some surfaces are mispelled 
 df <- df %>% 
   mutate(surface=trimws(surface)) %>% 
@@ -94,6 +100,7 @@ df <- df %>%
                            surface=="Cubicel door handle inside"~"Cubicle door handle inside",
                            surface=="Cubicel door handle outside"~"Cubicle door handle outside",
                            surface=="Watch"~"Clothing",
+                           surface=="Door lack"~"Door lock",
                            TRUE~surface)) 
 
 # experimentID is wrong, it repeats 1,2,3 for every participant, fixed by creating a random string for each one instead.
@@ -108,17 +115,19 @@ df <- df%>%
   
   df %>% 
     ungroup() %>% 
-    group_by(experimentID,surface,activity) %>% 
+    group_by(experimentID,toilet_type,sex,surface) %>% 
     tally() %>% 
     ggplot()+
-    geom_col(aes(x=surface,y=n,fill=activity))+
+    geom_col(aes(x=surface,y=n))+
+    facet_wrap(~sex+toilet_type)+
     # geom_bar(stat = "identity")
     scale_y_discrete(guide = guide_axis(angle = 90))+
     coord_flip()+
     hrbrthemes::theme_ipsum()
   
   
- #      
+ 
+  #      
       
   # 2. Summary statistics
   
