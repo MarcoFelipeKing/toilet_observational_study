@@ -3,10 +3,25 @@
 pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi)
 
 # 1. Load data files
-
+#WT
 l <- list.files(path="contacts/data/WT/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
 df <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","date_time","surface"))
+
+#WT
+l <- list.files(path="contacts/data/GN/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
+
+dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))
+
+#
+l <- list.files(path="contacts/data/GN/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
+
+dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))
+
+# Bind all data frames together
+df <- list(df,dfGN) %>% bind_rows()
+
+
 
 # split the column surface into the surface and hand. Split MHM from the sub_type
 df <- df %>% 
@@ -28,9 +43,39 @@ df <- df %>%
 #   separate(date_time,into=c("date_time"),sep = "GMT") %>% 
 #   mutate(date_time=trimws(date_time)) %>% 
 #   separate(date_time,into=c("DAY","MONTH","MONTH_1","YEAR","TIME"),sep = " ")
-  
-  
-  
+
+# Create a column for sex, but can only define female easily
+
+
+df <- df %>% 
+  group_by(participantID) %>% 
+  mutate(sex=case_when(activity=="MHM"~"Female",
+                       TRUE~"NA")) %>% 
+  select(participantID,sex) %>% 
+  distinct(participantID,sex) 
+
+#Function to convert "NA" fr
+make.true.NA <- function(x) if(is.character(x)||is.factor(x)){
+  is.na(x) <- x=="NA"; x} else {
+    x}
+df[] <- lapply(df, make.true.NA)
+
+
+df <- df %>% 
+  group_by(participantID) %>% 
+  fill(sex,.direction = "updown") %>% 
+  mutate(sex=case_when(sex=="Female"~"Female",
+                       TRUE~"Male"))
+
+#Check
+#All females
+# a <- a %>% 
+#   drop_na(sex)
+# df %>% 
+#   distinct(participantID) %>% 
+#   merge(a,all=TRUE)
+
+    # crossing(df$participantID,df$activity)
 # clean surface names to match- some surfaces are mispelled 
 df <- df %>% 
   mutate(surface=trimws(surface)) %>% 
