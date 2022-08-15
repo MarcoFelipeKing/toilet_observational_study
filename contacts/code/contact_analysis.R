@@ -3,26 +3,26 @@
 pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi)
 
 # 1. Load data files
-#WT
+#WT - time is available but not reliable so we can disgard this.
 l <- list.files(path="contacts/data/WT/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
 df <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","date_time","surface")) %>% 
   mutate(toilet_type="Female")
 
-#GN
+#GN - Note no time available
 l <- list.files(path="contacts/data/GN/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
 dfGN <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))%>% 
   mutate(toilet_type="GN")
 
-#MT
+#MT - Note no time available
 l <- list.files(path="contacts/data/MT/",pattern = "*.txt",recursive = TRUE,full.names = TRUE)
 
 dfM <- vroom::vroom(l,col_names = c("experimentID","participantID","activity","surface"))%>% 
   mutate(toilet_type="Male")
 
 # Bind all data frames together
-df <- list(df,dfGN) %>% bind_rows()
+df <- list(df,dfGN,dfM) %>% bind_rows()
 
 
 
@@ -103,6 +103,10 @@ df <- df %>%
                            surface=="Door lack"~"Door lock",
                            TRUE~surface)) 
 
+#Some surfaces have blank space in the cell instead of a value so remove
+
+df <- df%>% mutate_all(na_if,"") %>% drop_na(surface)
+
 # experimentID is wrong, it repeats 1,2,3 for every participant, fixed by creating a random string for each one instead.
 
 df <- df%>% 
@@ -112,18 +116,42 @@ df <- df%>%
 
 
 # Plot by activity
+stat.test <- df %>%
+  ungroup() %>% 
+  filter(activity!="MHM") %>% 
+  group_by(experimentID,activity,sex) %>% 
+  tally() %>% 
+  ungroup() %>% 
+  # group_by(sex,activity) %>%
+  rstatix::t_test(n ~ activity, ref.group = "Defecation",paired = TRUE)
+stat.test
+
+
+df %>% 
+  ungroup() %>% 
+  group_by(experimentID,toilet_type,activity,sex) %>% 
+  tally() %>% 
+  ggplot()+
+  geom_violin(aes(x=sex,y=n,fill=activity),draw_quantiles = c(0.25,0.5,0.75))+
+  facet_wrap(~activity,scale = "free_x")+
+  scale_fill_brewer(palette="Pastel1")+
+  # geom_bar(stat = "identity")
+  # scale_y_discrete(guide = guide_axis(angle = 90))+
+  # coord_flip()+
+  hrbrthemes::theme_ipsum()
+
   
-  df %>% 
-    ungroup() %>% 
-    group_by(experimentID,toilet_type,sex,surface) %>% 
-    tally() %>% 
-    ggplot()+
-    geom_col(aes(x=surface,y=n))+
-    facet_wrap(~sex+toilet_type)+
-    # geom_bar(stat = "identity")
-    scale_y_discrete(guide = guide_axis(angle = 90))+
-    coord_flip()+
-    hrbrthemes::theme_ipsum()
+  # df %>% 
+  #   ungroup() %>% 
+  #   group_by(experimentID,toilet_type,sex,surface) %>% 
+  #   tally() %>% 
+  #   ggplot()+
+  #   geom_col(aes(x=surface,y=n))+
+  #   facet_wrap(~sex+toilet_type)+
+  #   # geom_bar(stat = "identity")
+  #   scale_y_discrete(guide = guide_axis(angle = 90))+
+  #   coord_flip()+
+  #   hrbrthemes::theme_ipsum()
   
   
  
