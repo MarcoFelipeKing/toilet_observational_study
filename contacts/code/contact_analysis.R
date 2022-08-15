@@ -1,5 +1,5 @@
 # Contacts Analysis
-
+####
 pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi)
 
 # 1. Load data files
@@ -116,30 +116,25 @@ df <- df%>%
 
 
 # Plot by activity
-stat.test <- df %>%
-  ungroup() %>% 
-  filter(activity!="MHM") %>% 
-  group_by(experimentID,activity,sex) %>% 
-  tally() %>% 
-  ungroup() %>% 
-  # group_by(sex,activity) %>%
-  rstatix::t_test(n ~ activity, ref.group = "Defecation",paired = TRUE)
-stat.test
+
 
 
 df %>% 
   ungroup() %>% 
+  filter(activity!="MHM") %>%
   group_by(experimentID,toilet_type,activity,sex) %>% 
   tally() %>% 
-  ggplot()+
-  geom_violin(aes(x=sex,y=n,fill=activity),draw_quantiles = c(0.25,0.5,0.75))+
-  facet_wrap(~activity,scale = "free_x")+
+  ggplot(aes(x=activity,y=n,fill=sex))+
+  # geom_boxplot()+
+  geom_violin(draw_quantiles = c(0.25,0.5,0.75))+
+  facet_wrap(~sex,scale = "free_x")+
   scale_fill_brewer(palette="Pastel1")+
-  # geom_bar(stat = "identity")
-  # scale_y_discrete(guide = guide_axis(angle = 90))+
-  # coord_flip()+
-  hrbrthemes::theme_ipsum()
+  hrbrthemes::theme_ipsum()->p
+ggpval::add_pval(p, test='kruskal.test')
 
+# geom_bar(stat = "identity")
+# scale_y_discrete(guide = guide_axis(angle = 90))+
+# coord_flip()+
   
   # df %>% 
   #   ungroup() %>% 
@@ -166,7 +161,7 @@ df %>%
     # arrange(desc(n))
     group_by(activity) %>% 
     ggplot()+
-    geom_violin(aes(x=activity,n,fill=activity),draw_quantiles = c(0.25,0.5,0.75))+
+    geom_violin(aes(x=sex,n,fill=activity),draw_quantiles = c(0.25,0.5,0.75))+
     geom_jitter(aes(x=activity,n),width = 0.1,alpha=0.4)+
     # geom_density(aes(x=n,fill=activity),alpha=0.2)+
     # geom_bar(stat = "identity")
