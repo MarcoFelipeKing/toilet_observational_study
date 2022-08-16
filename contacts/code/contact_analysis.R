@@ -124,14 +124,39 @@ df %>%
   filter(activity!="MHM") %>%
   group_by(experimentID,toilet_type,activity,sex) %>% 
   tally() %>% 
-  ggplot(aes(x=activity,y=n,fill=sex))+
+  filter(n<50) %>% 
+  ggplot(aes(x=sex,y=n,fill=activity))+
   # geom_boxplot()+
   geom_violin(draw_quantiles = c(0.25,0.5,0.75))+
-  facet_wrap(~sex,scale = "free_x")+
+  # scale_y_continuous(trans="log10")+
+  # geom_jitter(aes(x=activity,y=n,colour=sex),position=position_jitterdodge(jitter.width = 0.1))+
+  facet_wrap(~activity,scale = "free_x")+
   scale_fill_brewer(palette="Pastel1")+
-  hrbrthemes::theme_ipsum()->p
+  hrbrthemes::theme_ipsum() ->p
 ggpval::add_pval(p, test='kruskal.test')
 
+# t.test
+df %>% 
+  ungroup() %>% 
+  # filter(activity!="MHM") %>%
+  group_by(experimentID,toilet_type,activity,sex) %>% 
+  tally()->data
+
+# by activity 
+t.test(data=data,n~activity)
+
+# Analysing the difference between defecation (mean=?, sd=?) and urination (mean=?, sd=?) is stiataitally significantly different (p=6.31e-06).
+
+# by sex
+
+t.test(data=data,n~sex)
+# (p<0.05) we reject the null hypothesis that they have the same means.
+
+# by toilet type
+aov(data=data ,log10(n)~toilet_type+sex) %>% broom::tidy()
+fit_m <- aov(data=data %>%  filter(n<50),log10(n)~toilet_type+sex+activity)
+
+TukeyHSD(fit_m)
 # geom_bar(stat = "identity")
 # scale_y_discrete(guide = guide_axis(angle = 90))+
 # coord_flip()+
