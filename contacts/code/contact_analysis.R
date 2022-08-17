@@ -115,6 +115,35 @@ df <- df%>%
   mutate(experimentID = paste0(stri_rand_strings(1, 5, "[A-Z]"), stri_rand_strings(1, 4, "[0-9]"), stri_rand_strings(1, 1, "[A-Z]")))
 
 
+# 4. Create surface categories
+
+df <- df %>% 
+  mutate(surfaceCategories=case_when(surface=="Outside door handle"~"Door",
+                                     surface=="Inside door handle"~"Door",
+                                     surface=="Cubicle door handle inside"~"Cubicle",
+                                     surface=="Toilet surface"~"Cubicle",
+                                     surface=="Phone"~"Personal",
+                                     surface=="Toilet paper"~"Cubicle",
+                                     surface=="Clothing"~"Personal",
+                                     surface=="Flush button"~"Cubicle",
+                                     surface=="Tap"~"Hygiene",
+                                     surface=="Soap dispenser"~"Hygiene",
+                                     surface=="Hand dryer"~"Hygiene",
+                                     surface=="Cubicle door handle outside"~"Cubicle",
+                                     surface=="Skin"~"Personal",
+                                     surface=="Sanitary pad"~"MHM",
+                                     surface=="Tissue paper"~"Hygiene",
+                                     surface=="Bin outside the cubicle"~"Hygiene",
+                                     surface=="Toilet brush handle"~"Cubicle",
+                                     surface=="Bag"~"Personal",
+                                     surface=="Hair"~"Personal",
+                                     surface=="Bin inside the cubicle"~"Cubicle",
+                                     surface=="Menstrual cup"~"MHM",
+                                     surface=="Face"~"Personal",
+                                     surface=="Tampon"~"MHM",
+                                     surface=="Bottle"~"Personal"
+  ))
+
 # Plot by activity
 
 
