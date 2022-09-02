@@ -10,7 +10,7 @@
 20	CEM040	Urination	Tap (right)
 20	CEM040	Urination	Soap dispenser (right)
 20	CEM040	Urination	Tap (left)
-20	CEM040	Urination	Tap (leftt)
+20	CEM040	Urination	Tap (left)
 20	CEM040	Urination	Door lock (right)
 20	CEM040	Urination	Cubicel door handle inside (left)
 20	CEM040	Urination	Door handle inside (left)

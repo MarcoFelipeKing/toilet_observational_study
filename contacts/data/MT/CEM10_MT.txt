@@ -2,7 +2,7 @@
 23	CEM010	Urination	Clothing (both)
 23	CEM010	Urination	Skin (both)
 23	CEM010	Urination	Clothing (both)
-23	CEM010	Urination	Door handle
+23	CEM010	Urination	Door handle (right)
 23	CEM010	Urination	Tap (right) 
 23	CEM010	Urination	Tap (left) 
 23	CEM010	Urination	Soap dispenser (left)

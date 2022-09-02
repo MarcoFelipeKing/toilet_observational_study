@@ -206,7 +206,8 @@ TukeyHSD(fit_m)
  
   #      
       
-  # 2. Summary statistics
+######## 
+# 2. Summary statistics -----
   
   df %>% 
     group_by(activity,experimentID) %>% 
@@ -244,7 +245,55 @@ TukeyHSD(fit_m)
   
   
   
+#####  
+# 3.1 Right vs left hand contacts -----
+  df %>% 
+    group_by(experimentID,hand,sex,toilet_type,activity) %>%
+    tally() %>% 
+    filter(hand!="both") %>% 
+    ggplot()+
+    geom_violin(aes(x=hand,y=n,fill=sex),draw_quantiles = c(0.25,0.5,0.75))+
+    # geom_jitter(aes(x=sex,n),width = 0.1,alpha=0.4)+
+    scale_fill_brewer(palette = "Pastel1")+
+    xlab("")+
+    ylab("Number of contacts")+
+    # geom_density(aes(x=n,fill=activity),alpha=0.2)+
+    # geom_bar(stat = "identity")
+    # scale_y_discrete(guide = guide_axis(angle = 90))+
+    coord_flip()+
+    hrbrthemes::theme_ipsum()
+  ggpval::add_pval(p, test='kruskal.test')
   
-      
+  
+  df %>%
+    group_by(operator,pcr_result) %>%
+    summarise(n=n()) %>%
+    mutate(percentage=n/sum(n)) %>%
+    ggplot()+
+    geom_bar(aes(x=operator,y=percentage,fill=pcr_result,label=percentage),position="stack", stat="identity")+
+    geom_text(aes(x=operator,y=percentage,fill=pcr_result,label=paste("n=",round(n))),size = 3, position = position_stack(vjust = 0.5))+
+    # geom_text_repel(aes(x=operator,y=percentage,fill=pcr_result,label=paste("n=",round(n))),
+    #   nudge_x = .15,
+    #   box.padding = 0.5,
+    #   nudge_y = 1,
+    #   segment.curvature = -0.1,
+    #   segment.ncp = 3,
+    #   segment.angle = 20
+    # )+
+    # viridis::scale_fill_viridis(discrete = T,option="E") +
+    xlab("Operator")+
+    ylab("Percentage")+
+    scale_y_continuous(labels = scales::percent_format())+
+    scale_fill_brewer(palette = "Pastel1")+
+    labs(fill = "RT-PCR result",title = "RT-PCR results", subtitle="Percentage of RT-PCR results by signal strength")+
+    hrbrthemes::theme_ipsum(axis_title_size = 12)+
+    theme(legend.position = "bottom")->a
+  
+  
+  
+  
+  
+  
+  
       
       

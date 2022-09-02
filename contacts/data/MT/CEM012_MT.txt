@@ -5,7 +5,7 @@
 3	CEM012	Urination	Tap (left) 
 3	CEM012	Urination	Tap (left)
 3	CEM012	Urination	Tap (left)
-3	CEM012	Urination	Soap dispenser
+3	CEM012	Urination	Soap dispenser (left)
 3	CEM012	Urination	Tap (left) 
 3	CEM012	Urination	Tap (left) 
 3	CEM012	Urination	Inside door handle (left)
