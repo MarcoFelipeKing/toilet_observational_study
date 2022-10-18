@@ -1,7 +1,8 @@
 # Contacts Analysis Code
 # Run the code line by line by clicking anywhere on that line and pressing ctrl+enter (cmd+enter on mac)
 # 0.0 Load packages ----
-pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi,ggpval,RcolorBrewer,)
+install.packages("pacman")
+pacman::p_load(dplyr,vroom,tidyr,ggplot2,hrbrthemes,stringr,stringi,ggpval,RcolorBrewer)
 
 # 1. Load data files ----
 ###  1.1 Read in  Women's toilet data WT ----
