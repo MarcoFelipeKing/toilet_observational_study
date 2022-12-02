@@ -240,6 +240,40 @@ TukeyHSD(fit_m) # check individual differences
   
   
   
+# 7. Find most likely surface at each surface contact n
+
   
+num_contact <- function(p){
+  a <- df %>% 
+    select(-date_time,-id,-hand) %>% 
+    group_by(experimentID,sex,activity,toilet_type) %>% 
+    slice_head(n = p) %>% 
+    slice_tail(n = 1) %>% 
+    group_by(surface,sex,activity,toilet_type) %>% 
+    tally() %>% 
+    group_by(sex,activity,toilet_type) %>% 
+    arrange(desc(n)) %>% 
+    slice_head(n = 1) %>% 
+    filter(sex=="Female" & activity=="Defecation" & toilet_type=="Female")
+  return(a)
+}
+
+
+n_contacts <- purrr::map_df(seq(1,78,1),num_contact)
+
+
+# How many 
+df %>% 
+  group_by(experimentID) %>% 
+  tally() %>% 
+  summarise(max(n))
+
+
+
+
+
+
+
+
       
       
