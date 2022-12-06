@@ -135,6 +135,9 @@ df <- df %>%
                                      surface=="Bottle"~"Personal"
   ))
 
+# Save data
+write.csv(df,"contacts/data/clean_contact_data.csv",row.names = FALSE)
+
 # 3. Summary statistics -----
 # TODO create some summary statistics tables of
 
@@ -242,6 +245,7 @@ TukeyHSD(fit_m) # check individual differences
   
 # 7. Find most likely surface at each surface contact n
 
+df <-vroom::vroom("contacts/data/clean_contact_data.csv")
   
 num_contact <- function(p){
   a <- df %>% 
@@ -262,15 +266,24 @@ num_contact <- function(p){
 n_contacts <- purrr::map_df(seq(1,78,1),num_contact)
 
 
-# How many 
+# How many contacts per person
 df %>% 
   group_by(experimentID) %>% 
-  tally() %>% 
+  tally() %>% arrange(desc(n))
   summarise(max(n))
 
 
 
 
+# Add the outs
+df <- split(df,df$experimentID) 
+
+for(i in seq(1,105,1)){
+  temp <- df[[1]] %>% 
+    slice_tail(n=1)
+  temp %>% 
+    repl
+}
 
 
 
