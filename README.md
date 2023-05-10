@@ -1,8 +1,8 @@
 # Toilet Observational Study
 
-## Authors: Bushra Hasan, Yiwen Yang, Meng Zhang and Marco-Felipe King
-## School of Civil Engineering,
-## University of Leeds
+## Authors: Bushra Hasan, Yoonhee Jung, Yiwen Yang, Meng Zhang and Marco-Felipe King
+## School of Civil Engineering, 
+## University of Leeds, University of Arizona
 
 ### To get started:
 Open the Toilet_study.Rproj file using RStudio. This will automatically map the file structure and have the contact_analysis.R code loaded up.
