@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(dplyr,ggplot2,tidyr,vroom,lubridate)
+```
+
+## Import and read data
+
+```{r }
+
+dg <- vroom::vroom("Airquality/clean_data/airquality_data_full.csv")%>% janitor::clean_names()
+df <- vroom::vroom("Airquality/clean_data/airquality_data_clean.csv") %>% janitor::clean_names()
+df <- df %>% 
+  separate(participant_id,sep="_",into=c("toilet_type","participant_id","sex")) 
+
+dg
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+df %>% 
+  filter(participant_id=="001") %>% 
+  # filter(activity=="U" & toilet_type == "M") %>% 
+  ggplot()+
+  geom_point(aes(x=timestamp,y=co2_ppm,colour=sensor))+
+  hrbrthemes::theme_ipsum()+
+  facet_wrap(~participant_id,scales = "free") ->a
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+
+
+
